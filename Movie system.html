@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="movieApp">
+<head>
+    <meta charset="UTF-8">
+    <title>Movie Rental Store</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        table th {
+            background-color: #007bff;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .filter-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        select, input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .error-message {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        form {
+            display: grid;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div ng-controller="MovieController">
+        <h1>🎬 Movie Rental Store</h1>
+
+        <div class="filter-section">
+            <label>
+                Genre:
+                <select ng-model="filters.genre" ng-options="genre for genre in genres">
+                    <option value="">All</option>
+                </select>
+            </label>
+            <label>
+                Year:
+                <select ng-model="filters.year" ng-options="year for year in years">
+                    <option value="">All</option>
+                </select>
+            </label>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Genre</th>
+                    <th>Year</th>
+                    <th>Rental Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="movie in filteredMovies = (movies | filter: { genre: filters.genre, year: filters.year })">
+                    <td>{{ movie.title }}</td>
+                    <td>{{ movie.genre }}</td>
+                    <td>{{ movie.year }}</td>
+                    <td>{{ calculatePrice(movie.year) | currency }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Add New Movie</h2>
+        <form ng-submit="addMovie()">
+            <label>
+                Title:
+                <input type="text" ng-model="newMovie.title" required>
+            </label>
+            <label>
+                Genre:
+                <input type="text" ng-model="newMovie.genre" required>
+            </label>
+            <label>
+                Year:
+                <input type="number" ng-model="newMovie.year" required>
+            </label>
+            <button type="submit">Add Movie</button>
+        </form>
+        <p ng-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+    </div>
+
+    <script>
+        angular.module('movieApp', [])
+        .service('RentalService', function() {
+            this.calculatePrice = function(year) {
+                const currentYear = new Date().getFullYear();
+                return currentYear - year <= 3 ? 5 : 3;
+            };
+        })
+        .controller('MovieController', ['$scope', 'RentalService', function($scope, RentalService) {
+            $scope.movies = [
+                { title: 'Inception', genre: 'Sci-Fi', year: 2010 },
+                { title: 'Parasite', genre: 'Drama', year: 2019 },
+                { title: 'The Dark Knight', genre: 'Action', year: 2008 },
+                { title: 'Avengers: Endgame', genre: 'Action', year: 2019 },
+                { title: 'Interstellar', genre: 'Sci-Fi', year: 2014 }
+            ];
+
+            $scope.filters = {};
+            $scope.genres = [...new Set($scope.movies.map(movie => movie.genre))];
+            $scope.years = [...new Set($scope.movies.map(movie => movie.year))];
+            $scope.newMovie = {};
+            $scope.errorMessage = '';
+
+            $scope.calculatePrice = RentalService.calculatePrice;
+
+            $scope.addMovie = function() {
+                const exists = $scope.movies.some(movie => movie.title.toLowerCase() === $scope.newMovie.title.toLowerCase());
+                if (exists) {
+                    $scope.errorMessage = 'Movie title must be unique!';
+                } else {
+                    $scope.movies.push({ ...$scope.newMovie });
+                    $scope.newMovie = {};
+                    $scope.errorMessage = '';
+                    $scope.genres = [...new Set($scope.movies.map(movie => movie.genre))];
+                    $scope.years = [...new Set($scope.movies.map(movie => movie.year))];
+                }
+            };
+        }]);
+    </script>
+</body>
+</html>
