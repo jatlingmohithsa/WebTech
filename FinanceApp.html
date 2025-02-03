@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="financeApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Tracker</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        nav {
+            width: 100%;
+            background-color: #1976d2;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            margin: 0 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        nav a:hover {
+            background-color: #1565c0; /* Darker shade on hover */
+        }
+
+        h2 {
+            color: #1976d2; /* Header color */
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px; /* Limit width for better readability */
+        }
+
+        input[type="number"] {
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: calc(70% - 15px); /* Adjust width */
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #28a745; /* Green color for buttons */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+
+        ul {
+            list-style-type: none; /* Remove default list styling */
+            padding-left: 0; /* Remove left padding */
+        }
+
+        li {
+            margin-bottom: 10px; /* Space between items */
+            padding: 10px;
+            background-color: #e3f2fd; /* Light blue background for items */
+            border-radius: 4px; /* Rounded corners for items */
+            display: flex; /* Flexbox for better layout */
+            justify-content: space-between; /* Space between item and button */
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="#/dashboard">Dashboard</a>
+    <a href="#/expenses">Expenses</a>
+    <a href="#/income">Income</a>
+</nav>
+
+<div ng-view></div>
+
+<script>
+var app = angular.module('financeApp', ['ngRoute']);
+
+app.config(function($routeProvider) {
+    $routeProvider
+        .when('/dashboard', {
+            templateUrl: 'dashboard.html',
+            controller: 'DashboardController'
+        })
+        .when('/expenses', {
+            templateUrl: 'expenses.html',
+            controller: 'ExpensesController'
+        })
+        .when('/income', {
+            templateUrl: 'income.html',
+            controller: 'IncomeController'
+        })
+        .otherwise({
+            redirectTo: '/dashboard'
+        });
+});
+
+app.controller('DashboardController', function($scope) {
+    $scope.incomeTotal = 0;
+    $scope.expenseTotal = 0;
+
+    // Example data
+    $scope.incomeEntries = [{ amount: 1000 }, { amount: 500 }];
+    $scope.expenseEntries = [{ amount: 200 }, { amount: 150 }];
+
+    // Calculate totals
+    $scope.calculateTotals = function() {
+        $scope.incomeTotal = $scope.incomeEntries.reduce((sum, entry) => sum + entry.amount, 0);
+        $scope.expenseTotal = $scope.expenseEntries.reduce((sum, entry) => sum + entry.amount, 0);
+    };
+
+    // Initialize totals
+    $scope.calculateTotals();
+});
+
+app.controller('ExpensesController', function($scope) {
+    $scope.expenses = [];
+    
+    $scope.addExpense = function() {
+        if ($scope.newExpense) {
+           const amount = parseFloat($scope.newExpense);
+           if (!isNaN(amount)) { // Check if the input is a valid number
+               $scope.expenses.push({ amount });
+               $scope.newExpense = '';
+           }
+       }
+   };
+});
+
+app.controller('IncomeController', function($scope) {
+   $scope.incomes = [];
+   
+   $scope.addIncome = function() {
+       if ($scope.newIncome) {
+           const amount = parseFloat($scope.newIncome);
+           if (!isNaN(amount)) { // Check if the input is a valid number
+               $scope.incomes.push({ amount });
+               $scope.newIncome = '';
+           }
+       }
+   };
+});
+</script>
+
+<!-- Templates -->
+<script type="text/ng-template" id="dashboard.html">
+<div class="container">
+<h2>Dashboard</h2>
+<p>Total Income: {{incomeTotal}}</p>
+<p>Total Expenses: {{expenseTotal}}</p>
+</div>
+</script>
+
+<script type="text/ng-template" id="expenses.html">
+<div class="container">
+<h2>Expenses</h2>
+<input type="number" ng-model="newExpense" placeholder="Enter expense amount" />
+<button ng-click="addExpense()">Add Expense</button>
+<ul>
+   <li ng-repeat="expense in expenses">{{expense.amount}} 
+       <button ng-click="removeExpense(expense)">Remove</button> <!-- Optional remove button -->
+   </li>
+</ul>
+</div>
+</script>
+
+<script type="text/ng-template" id="income.html">
+<div class="container">
+<h2>Income</h2>
+<input type="number" ng-model="newIncome" placeholder="Enter income amount" />
+<button ng-click="addIncome()">Add Income</button>
+<ul>
+   <li ng-repeat="income in incomes">{{income.amount}} 
+       <button ng-click="removeIncome(income)">Remove</button> <!-- Optional remove button -->
+   </li>
+</ul>
+</div>
+</script>
+
+</body>
+</html>
